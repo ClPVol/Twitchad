@@ -10,7 +10,7 @@ Steps to use :
 
 1 - Allow legacy Chromium Manifest (v2)
 Modify Chrome's shortcut adding --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled to come back to previous manifest and allow installing real uBlock Origin (not Lite)
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled
+eg. "C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled
 
 2 - Install uBlock Origin
 Install newest version of the extension on official gihub repo
