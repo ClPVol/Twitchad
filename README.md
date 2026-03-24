@@ -3,7 +3,7 @@ Block Ads from Twitch using uBlock Origin
 
 JS Source : https://github.com/pixeltris/TwitchAdSolutions
 Verified code by me on 2026-03-23
-This is not my work. I have no right on the JS file.
+This is not my work. I have no right on the JS file. Thx to the community !
 
 
 Steps to use :
