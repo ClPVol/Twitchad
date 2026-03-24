@@ -29,6 +29,8 @@ Go Back to the previous settings page and clic on the gear button next to the "I
 Modify the last lign paste ;
 "userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchadv1/refs/heads/main/twitch-videoad.js"
 
+Public visibility, no need to use a token 
+
 6 - Save and restart browser
 Enjoy
 
