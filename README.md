@@ -27,8 +27,7 @@ Paste "twitch.tv##+js(twitch-videoad)" to fill the text blank and save
 5 - Link the JS on my repo
 Go Back to the previous settings page and clic on the gear button next to the "I'm an advanced user" on the bottom of the page
 Modify the last lign paste ;
-"userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchadv1/refs/heads/main/twitch-videoad.js?token=xxxxxxxxxxx"
-xxxxxxxxx is the token cause my repo is in private mode
+"userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchadv1/refs/heads/main/twitch-videoad.js"
 
 6 - Save and restart browser
 Enjoy
