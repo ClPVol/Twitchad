@@ -28,7 +28,8 @@ Pick the "I'm an advanced user" on the bottom of the page
 4 - Add filter :
 
 Go to "My Filters"
-Paste "twitch.tv##+js(twitch-videoad)" to fill the text blank and save
+Paste "twitch.tv##+js(twitch-videoad)" to fill the text blank 
+Tick "Trust personalised filters" and save
 
 5 - Link the JS on my repo :
 
