@@ -5,8 +5,7 @@ JS Source : https://github.com/pixeltris/TwitchAdSolutions
 Verified code by me on 2026-03-23
 This is not my work. I have no right on the JS file. Thx to the community !
 
-I've created the v2 on 2026-05-28
-Try this out by changing the raw link
+I've tried a second version of the script on 2026-05-28. Not working for now but working on it.
 
 
 Steps to use :
