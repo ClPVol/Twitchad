@@ -1,4 +1,4 @@
-twitch-videoad.js text/javascript
+twitch-videoadv2.js text/javascript
 (function() {
     if ( /(^|\.)twitch\.tv$/.test(document.location.hostname) === false ) { return; }
     'use strict';
