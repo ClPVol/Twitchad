@@ -10,8 +10,10 @@ Steps to use :
 
 1 - Allow legacy Chromium Manifest (v2) :
 
-Modify Chrome's shortcut adding --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled to come back to previous manifest and allow installing real uBlock Origin (not Lite)
-eg. "C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled
+Modify Chrome's icon shortcut adding --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled to the chrome.exe's link.
+In order to come back to previous manifest and allow installing real uBlock Origin (not Lite)
+eg. replace your shortcut settings by ["C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-features=ExtensionManifestV2Unsupported,ExtensionManifestV2Disabled]
+Now you can install the real uBlock Origin (next step).
 
 2 - Install uBlock Origin :
 
@@ -38,5 +40,9 @@ Public visibility, no need to use a token
 
 6 - Save and restart browser
 Enjoy
+
+PS : You can now block france.tv ads
+Add "france.tv##+js(ftvad.js)" in My Filters
+and "userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchadv1/refs/heads/main/ftvad.js" in "Advanced user" 
 
 C.
