@@ -1,4 +1,4 @@
-// france-tv-videoad.js text/javascript
+// ftvad.js text/javascript
 (function() {
     if ( /(^|\.)france\.tv$/.test(document.location.hostname) === false ) { return; }
     'use strict';
