@@ -1,4 +1,4 @@
-# Twitchadv1
+# Twitchadv2
 Block Ads from Twitch using uBlock Origin 
 
 Updated script based on JS Source : https://github.com/pixeltris/TwitchAdSolutions
