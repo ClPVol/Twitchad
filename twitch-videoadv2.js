@@ -2,7 +2,7 @@ twitch-videoadv2.js text/javascript
 (function() {
     if ( /(^|\.)twitch\.tv$/.test(document.location.hostname) === false ) { return; }
     'use strict';
-    const ourTwitchAdSolutionsVersion = 24;
+    const ourTwitchAdSolutionsVersion = 24;// Used to prevent conflicts with outdated versions of the scripts
     if (typeof window.twitchAdSolutionsVersion !== 'undefined' && window.twitchAdSolutionsVersion >= ourTwitchAdSolutionsVersion) {
         console.log("skipping vaft as there's another script active. ourVersion:" + ourTwitchAdSolutionsVersion + " activeVersion:" + window.twitchAdSolutionsVersion);
         window.twitchAdSolutionsVersion = ourTwitchAdSolutionsVersion;
@@ -13,17 +13,18 @@ twitch-videoadv2.js text/javascript
         scope.AdSignifier = 'stitched';
         scope.ClientID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
         scope.BackupPlayerTypes = [
-            'embed',
-            'popout',
-            'autoplay',
+            'embed',//Source
+            'popout',//Source
+            'autoplay',//360p
+            //'picture-by-picture-CACHED'//360p (-CACHED is an internal suffix and is removed)
         ];
         scope.FallbackPlayerType = 'embed';
         scope.ForceAccessTokenPlayerType = 'popout';
-        scope.SkipPlayerReloadOnHevc = false;
-        scope.AlwaysReloadPlayerOnAd = false;
-        scope.ReloadPlayerAfterAd = true;
+        scope.SkipPlayerReloadOnHevc = false;// If true this will skip player reload on streams which have 2k/4k quality (if you enable this and you use the 2k/4k quality setting you'll get error #4000 / #3000 / spinning wheel on chrome based browsers)
+        scope.AlwaysReloadPlayerOnAd = false;// Always pause/play when entering/leaving ads
+        scope.ReloadPlayerAfterAd = true;// After the ad finishes do a player reload instead of pause/play
         scope.PlayerReloadMinimalRequestsTime = 1500;
-        scope.PlayerReloadMinimalRequestsPlayerIndex = 2;
+        scope.PlayerReloadMinimalRequestsPlayerIndex = 2;//autoplay
         scope.HasTriggeredPlayerReload = false;
         scope.StreamInfos = [];
         scope.StreamInfosByUrl = [];
@@ -33,14 +34,14 @@ twitch-videoadv2.js text/javascript
         scope.ClientIntegrityHeader = null;
         scope.AuthorizationHeader = undefined;
         scope.SimulatedAdsDepth = 0;
-        scope.PlayerBufferingFix = true;
-        scope.PlayerBufferingDelay = 600;
-        scope.PlayerBufferingSameStateCount = 3;
-        scope.PlayerBufferingDangerZone = 1;
-        scope.PlayerBufferingDoPlayerReload = false;
-        scope.PlayerBufferingMinRepeatDelay = 8000;
-        scope.PlayerBufferingPrerollCheckEnabled = false;
-        scope.PlayerBufferingPrerollCheckOffset = 5;
+        scope.PlayerBufferingFix = true;// If true this will pause/play the player when it gets stuck buffering
+        scope.PlayerBufferingDelay = 600;// How often should we check the player state (in milliseconds)
+        scope.PlayerBufferingSameStateCount = 3;// How many times of seeing the same player state until we trigger pause/play (it will only trigger it one time until the player state changes again)
+        scope.PlayerBufferingDangerZone = 1;// The buffering time left (in seconds) when we should ignore the players playback position in the player state check
+        scope.PlayerBufferingDoPlayerReload = false;// If true this will do a player reload instead of pause/play (player reloading is better at fixing the playback issues but it takes slightly longer)
+        scope.PlayerBufferingMinRepeatDelay = 8000;// Minimum delay (in milliseconds) between each pause/play (this is to avoid over pressing pause/play when there are genuine buffering problems)
+        scope.PlayerBufferingPrerollCheckEnabled = false;// Enable this if you're getting an immediate pause/play/reload as you open a stream (which is causing the stream to take longer to load). One problem with this being true is that it can cause the player to get stuck in some instances requiring the user to press pause/play
+        scope.PlayerBufferingPrerollCheckOffset = 5;// How far the stream need to move before doing the buffering mitigation (depends on PlayerBufferingPrerollCheckEnabled being true)
         scope.V2API = false;
         scope.IsAdStrippingEnabled = true;
         scope.AdSegmentCache = new Map();
@@ -51,13 +52,13 @@ twitch-videoadv2.js text/javascript
     const twitchWorkers = [];
     const workerStringConflicts = [
         'twitch',
-        'isVariantA'
+        'isVariantA'// TwitchNoSub
     ];
     const workerStringAllow = [];
     const workerStringReinsert = [
-        'isVariantA',
-        'besuper/',
-        '${patch_url}'
+        'isVariantA',// TwitchNoSub (prior to (0.9))
+        'besuper/',// TwitchNoSub (0.9)
+        '${patch_url}'// TwitchNoSub (0.9.1)
     ];
     function getCleanWorker(worker) {
         let root = null;
@@ -86,6 +87,7 @@ twitch-videoadv2.js text/javascript
             const workerString = proto.toString();
             if (workerStringReinsert.some((x) => workerString.includes(x))) {
                 result.push(proto);
+            } else {
             }
             proto = Object.getPrototypeOf(proto);
         }
@@ -158,6 +160,7 @@ twitch-videoadv2.js text/javascript
                                 if (responseData.error) {
                                     reject(new Error(responseData.error));
                                 } else {
+                                    // Create a Response object from the response data
                                     const response = new Response(responseData.body, {
                                         status: responseData.status,
                                         statusText: responseData.statusText,
@@ -263,6 +266,7 @@ twitch-videoadv2.js text/javascript
                     V2API = url.includes('/api/v2/');
                     const channelName = (new URL(url)).pathname.match(/([^\/]+)(?=\.\w+$)/)[0];
                     if (ForceAccessTokenPlayerType) {
+                        // parent_domains is used to determine if the player is embeded and stripping it gets rid of fake ads
                         const tempUrl = new URL(url);
                         tempUrl.searchParams.delete('parent_domains');
                         url = tempUrl.toString();
@@ -274,6 +278,7 @@ twitch-videoadv2.js text/javascript
                                 const serverTime = getServerTimeFromM3u8(encodingsM3u8);
                                 let streamInfo = StreamInfos[channelName];
                                 if (streamInfo != null && streamInfo.EncodingsM3U8 != null && (await realFetch(streamInfo.EncodingsM3U8.match(/^https:.*\.m3u8$/m)[0])).status !== 200) {
+                                    // The cached encodings are dead (the stream probably restarted)
                                     streamInfo = null;
                                 }
                                 if (streamInfo == null || streamInfo.EncodingsM3U8 == null) {
@@ -286,7 +291,7 @@ twitch-videoadv2.js text/javascript
                                         IsUsingModifiedM3U8: false,
                                         UsherParams: (new URL(url)).search,
                                         RequestedAds: new Set(),
-                                        Urls: [],
+                                        Urls: [],// xxx.m3u8 -> { Resolution: "284x160", FrameRate: 30.0 }
                                         ResolutionList: [],
                                         BackupEncodingsM3U8Cache: [],
                                         ActiveBackupPlayerType: null,
@@ -323,13 +328,14 @@ twitch-videoadv2.js text/javascript
                                                         const oldResolution = resSettings['RESOLUTION'];
                                                         const [targetWidth, targetHeight] = oldResolution.split('x').map(Number);
                                                         const newResolutionInfo = nonHevcResolutionList.sort((a, b) => {
+                                                            // TODO: Take into account 'Frame-Rate' when sorting (i.e. 1080p60 vs 1080p30)
                                                             const [streamWidthA, streamHeightA] = a.Resolution.split('x').map(Number);
                                                             const [streamWidthB, streamHeightB] = b.Resolution.split('x').map(Number);
                                                             return Math.abs((streamWidthA * streamHeightA) - (targetWidth * targetHeight)) - Math.abs((streamWidthB * streamHeightB) - (targetWidth * targetHeight));
                                                         })[0];
                                                         console.log('ModifiedM3U8 swap ' + resSettings[codecsKey] + ' to ' + newResolutionInfo.Codecs + ' oldRes:' + oldResolution + ' newRes:' + newResolutionInfo.Resolution);
                                                         lines[i] = lines[i].replace(/CODECS="[^"]+"/, `CODECS="${newResolutionInfo.Codecs}"`);
-                                                        lines[i + 1] = newResolutionInfo.Url + ' '.repeat(i + 1);
+                                                        lines[i + 1] = newResolutionInfo.Url + ' '.repeat(i + 1);// The stream doesn't load unless each url line is unique
                                                     }
                                                 }
                                             }
@@ -362,10 +368,10 @@ twitch-videoadv2.js text/javascript
     function getServerTimeFromM3u8(encodingsM3u8) {
         if (V2API) {
             const matches = encodingsM3u8.match(/#EXT-X-SESSION-DATA:DATA-ID="SERVER-TIME",VALUE="([^"]+)"/);
-            return (matches && matches.length > 1) ? matches[1] : null;
+            return matches.length > 1 ? matches[1] : null;
         }
         const matches = encodingsM3u8.match('SERVER-TIME="([0-9.]+)"');
-        return (matches && matches.length > 1) ? matches[1] : null;
+        return matches.length > 1 ? matches[1] : null;
     }
     function replaceServerTimeInM3u8(encodingsM3u8, newServerTime) {
         if (V2API) {
@@ -379,6 +385,7 @@ twitch-videoadv2.js text/javascript
         const newAdUrl = 'https://twitch.tv';
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
+            // Remove tracking urls which appear in the overlay UI
             line = line
                 .replaceAll(/(X-TV-TWITCH-AD-URL=")(?:[^"]*)(")/g, `$1${newAdUrl}$2`)
                 .replaceAll(/(X-TV-TWITCH-AD-CLICK-TRACKING-URL=")(?:[^"]*)(")/g, `$1${newAdUrl}$2`);
@@ -396,6 +403,7 @@ twitch-videoadv2.js text/javascript
         }
         if (hasStrippedAdSegments) {
             for (let i = 0; i < lines.length; i++) {
+                // No low latency during ads (otherwise it's possible for the player to prefetch and display ad segments)
                 if (lines[i].startsWith('#EXT-X-TWITCH-PREFETCH:')) {
                     lines[i] = '';
                 }
@@ -469,6 +477,8 @@ twitch-videoadv2.js text/javascript
                     const line = lines[i];
                     if (line.startsWith('#EXTINF') && lines.length > i + 1) {
                         if (!line.includes(',live') && !streamInfo.RequestedAds.has(lines[i + 1])) {
+                            // Only request one .ts file per .m3u8 request to avoid making too many requests
+                            //console.log('Fetch ad .ts file');
                             streamInfo.RequestedAds.add(lines[i + 1]);
                             fetch(lines[i + 1]).then((response)=>{response.blob()});
                             break;
@@ -495,6 +505,7 @@ twitch-videoadv2.js text/javascript
             let startIndex = 0;
             let isDoingMinimalRequests = false;
             if (streamInfo.LastPlayerReload > Date.now() - PlayerReloadMinimalRequestsTime) {
+                // When doing player reload there are a lot of requests which causes the backup stream to load in slow. Briefly prefer using a single version to prevent long delays
                 startIndex = PlayerReloadMinimalRequestsPlayerIndex;
                 isDoingMinimalRequests = true;
             }
@@ -503,6 +514,7 @@ twitch-videoadv2.js text/javascript
                 const realPlayerType = playerType.replace('-CACHED', '');
                 const isFullyCachedPlayerType = playerType != realPlayerType;
                 for (let i = 0; i < 2; i++) {
+                    // This caches the m3u8 if it doesn't have ads. If the already existing cache has ads it fetches a new version (second loop)
                     let isFreshM3u8 = false;
                     let encodingsM3u8 = streamInfo.BackupEncodingsM3U8Cache[playerType];
                     if (!encodingsM3u8) {
@@ -565,6 +577,7 @@ twitch-videoadv2.js text/javascript
                     console.log(`Blocking${(streamInfo.IsMidroll ? ' midroll ' : ' ')}ads (${backupPlayerType})`);
                 }
             }
+            // TODO: Improve hevc stripping. It should always strip when there is a codec mismatch (both ways)
             const stripHevc = isHevc && streamInfo.ModifiedM3U8;
             if (IsAdStrippingEnabled || stripHevc) {
                 textStr = stripAdSegments(textStr, stripHevc, streamInfo);
@@ -640,11 +653,11 @@ twitch-videoadv2.js text/javascript
         let headers = {
             'Client-ID': ClientID,
             'X-Device-Id': GQLDeviceID,
-            'Authorization': AuthorizationHeader,
-            ...(ClientIntegrityHeader && {'Client-Integrity': ClientIntegrityHeader}),
-            ...(ClientVersion && {'Client-Version': ClientVersion}),
-            ...(ClientSession && {'Client-Session-Id': ClientSession})
+            'Authorization': AuthorizationHeader
         };
+        if (ClientIntegrityHeader) headers['Client-Integrity'] = ClientIntegrityHeader;
+        if (ClientVersion) headers['Client-Version'] = ClientVersion;
+        if (ClientSession) headers['Client-Session-Id'] = ClientSession;
         return new Promise((resolve, reject) => {
             const requestId = Math.random().toString(36).substring(2, 15);
             const fetchRequest = {
@@ -673,7 +686,7 @@ twitch-videoadv2.js text/javascript
         position: 0,
         bufferedPosition: 0,
         bufferDuration: 0,
-        numSame = 0,
+        numSame: 0,
         lastFixTime: 0,
         isLive: true
     };
@@ -694,6 +707,7 @@ twitch-videoadv2.js text/javascript
                               playerBufferState.channelName = channelName;
                               playerBufferState.hasStreamStarted = false;
                               playerBufferState.numSame = 0;
+                              //console.log('Channel changed to ' + channelName);
                           }
                       }
                     }
@@ -704,6 +718,8 @@ twitch-videoadv2.js text/javascript
                     const bufferedPosition = player.core?.state?.bufferedPosition;
                     const bufferDuration = player.getBufferDuration();
                     if (position !== undefined && bufferedPosition !== undefined) {
+                        //console.log('position:' + position + ' bufferDuration:' + bufferDuration + ' bufferPosition:' + bufferedPosition + ' state: ' + player.core?.state?.state + ' started: ' + playerBufferState.hasStreamStarted);
+                        // NOTE: This could be improved. It currently lets the player fully eat the full buffer before it triggers pause/play
                         if (playerBufferState.hasStreamStarted &&
                             (!PlayerBufferingPrerollCheckEnabled || position > PlayerBufferingPrerollCheckOffset) &&
                             (playerBufferState.position == position || bufferDuration < PlayerBufferingDangerZone)  &&
@@ -768,7 +784,7 @@ twitch-videoadv2.js text/javascript
             }
             if (adBlockDiv != null) {
                 isActivelyStrippingAds = data.isStrippingAdSegments;
-                adBlockDiv.P.textContent = 'Blocking' + (data.isMidroll ? ' midroll' : '') + ' ads' + (data.isStrippingAdSegments ? ' (stripping)' : '');
+                adBlockDiv.P.textContent = 'Blocking' + (data.isMidroll ? ' midroll' : '') + ' ads' + (data.isStrippingAdSegments ? ' (stripping)' : '');// + (data.numStrippedAdSegments > 0 ? ` (${data.numStrippedAdSegments})` : '');
                 adBlockDiv.style.display = data.hasAds && playerBufferState.isLive ? 'block' : 'none';
             }
         }
@@ -937,6 +953,7 @@ twitch-videoadv2.js text/javascript
                     if (typeof init.headers['Authorization'] === 'string' && init.headers['Authorization'] !== AuthorizationHeader) {
                         postTwitchWorkerMessage('UpdateAuthorizationHeader', AuthorizationHeader = init.headers['Authorization']);
                     }
+                    // Get rid of mini player above chat - TODO: Reject this locally instead of having server reject it
                     if (init && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken') && init.body.includes('picture-by-picture')) {
                         init.body = '';
                     }
@@ -967,6 +984,8 @@ twitch-videoadv2.js text/javascript
         };
     }
     function onContentLoaded() {
+        // This stops Twitch from pausing the player when in another tab and an ad shows.
+        // Taken from https://github.com/saucettv/VideoAdBlockForTwitch/blob/cefce9d2b565769c77e3666ac8234c3acfe20d83/chrome/content.js#L30
         try {
             Object.defineProperty(document, 'visibilityState', {
                 get() {
@@ -974,14 +993,8 @@ twitch-videoadv2.js text/javascript
                 }
             });
         }catch{}
-        
-        // Utilisation moderne des descripteurs de propriété au lieu de __lookupGetter__
-        let hiddenDesc = Object.getOwnPropertyDescriptor(document, 'hidden');
-        let hidden = hiddenDesc ? hiddenDesc.get : function() { return false; };
-        
-        let webkitHiddenDesc = Object.getOwnPropertyDescriptor(document, 'webkitHidden');
-        let webkitHidden = webkitHiddenDesc ? webkitHiddenDesc.get : null;
-        
+        let hidden = document.__lookupGetter__('hidden');
+        let webkitHidden = document.__lookupGetter__('webkitHidden');
         try {
             Object.defineProperty(document, 'hidden', {
                 get() {
@@ -1003,6 +1016,7 @@ twitch-videoadv2.js text/javascript
                     wasVideoPlaying = !videos[0].paused && !videos[0].ended;
                 } else {
                     if (!playerBufferState.hasStreamStarted) {
+                        //console.log('Tab focused. Stream should be active');
                         playerBufferState.hasStreamStarted = true;
                     }
                     if (isChrome && wasVideoPlaying && !videos[0].ended && videos[0].paused && videos[0].muted) {
@@ -1031,13 +1045,14 @@ twitch-videoadv2.js text/javascript
                 });
             }
         }catch{}
+        // Hooks for preserving volume / resolution
         try {
             const keysToCache = [
                 'video-quality',
                 'video-muted',
                 'volume',
-                'lowLatencyModeEnabled',
-                'persistenceEnabled',
+                'lowLatencyModeEnabled',// Low Latency
+                'persistenceEnabled',// Mini Player
             ];
             const cachedValues = new Map();
             for (let i = 0; i < keysToCache.length; i++) {
@@ -1058,6 +1073,8 @@ twitch-videoadv2.js text/javascript
                 return realGetItem.apply(this, arguments);
             };
             if (!localStorage.getItem.toString().includes(Object.keys({cachedValues})[0])) {
+                // These hooks are useful to preserve player state on player reload
+                // Firefox doesn't allow hooking of localStorage functions but chrome does
                 localStorageHookFailed = true;
             }
         } catch (err) {
