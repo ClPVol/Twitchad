@@ -34,7 +34,7 @@ Tick "Trust personalised filters" and save
 
 Go Back to the previous settings page and clic on the gear button next to the "I'm an advanced user" on the bottom of the page
 Modify the last lign paste ;
-"userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchadv1/refs/heads/main/twitch-videoadv2.js"
+"userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchad/refs/heads/main/twitch-videoadv2.js"
 
 Public visibility, no need to use a token 
 
@@ -47,8 +47,8 @@ Changes 2026-06-11 : twitch-videoadv2.js works better than previous version twit
 - Updated .md file in order to use script's v2 : twitch-videoadv2.js
 
 
-PS : You can now block france.tv ads
+PS SIDEPROJECT : You can now block france.tv ads
 Add "france.tv##+js(ftvad.js)" in My Filters
-and "userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchadv1/refs/heads/main/ftvad.js" in "Advanced user" 
+and "userResourcesLocation https://raw.githubusercontent.com/ClPVol/Twitchad/refs/heads/main/ftvad.js" in "Advanced user" 
 
 C.
